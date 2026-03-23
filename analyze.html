@@ -4,10 +4,12 @@
 
 <h2>📸 Analyze Image</h2>
 
+<button onclick="startAI()">🚀 Start AI</button><br><br>
+
 <input type="file" id="upload"><br><br>
 <img id="image" width="250"><br><br>
 
-<p id="result">Ready</p>
+<p id="result">Click Start AI first</p>
 
 <a href="dashboard.html">⬅ Back</a>
 
@@ -17,30 +19,31 @@
 
 <script>
 let model;
-
-async function loadModel(){
-  result.innerText = "⏳ Loading AI...";
-  model = await mobilenet.load();
-  result.innerText = "✅ Ready";
-}
-
-loadModel();
+let ready = false;
 
 const upload = document.getElementById("upload");
 const image = document.getElementById("image");
 const result = document.getElementById("result");
 
+// تشغيل AI بزر
+async function startAI(){
+  result.innerText = "⏳ Loading AI...";
+  model = await mobilenet.load();
+  ready = true;
+  result.innerText = "✅ AI Ready - Upload Image";
+}
+
+// رفع وتحليل
 upload.addEventListener("change", (e) => {
 
-  if (!model) {
-    result.innerText = "⏳ Wait...";
+  if (!ready) {
+    result.innerText = "❌ Click Start AI first";
     return;
   }
 
   const file = e.target.files[0];
   if (!file) return;
 
-  // عرض الصورة (مضمون)
   const reader = new FileReader();
 
   reader.onload = function(event) {
@@ -57,9 +60,9 @@ upload.addEventListener("change", (e) => {
       let decision = "Normal";
 
       if (top.className.includes("knife") || top.className.includes("gun")) {
-        decision = "Dangerous";
+        decision = "🚨 Dangerous";
       } else if (top.probability < 0.6) {
-        decision = "Uncertain";
+        decision = "❓ Uncertain";
       }
 
       result.innerText =
@@ -67,7 +70,7 @@ upload.addEventListener("change", (e) => {
         (top.probability * 100).toFixed(2) + "% | " +
         decision;
 
-      // تخزين بسيط
+      // history
       let record = `
         <div>
           <p>${top.className} - ${decision}</p>
