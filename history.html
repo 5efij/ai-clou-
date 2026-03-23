@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; background:#111; color:white;">
+
+<h2>📂 History</h2>
+
+<div id="history"></div>
+
+<a href="dashboard.html">⬅ Back</a>
+
+<script>
+document.getElementById("history").innerHTML =
+localStorage.getItem("history") || "No Data";
+</script>
+
+</body>
+</html>
