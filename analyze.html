@@ -7,7 +7,7 @@
 <input type="file" id="upload"><br><br>
 <img id="image" width="250"><br><br>
 
-<p id="result">Waiting...</p>
+<p id="result">⏳ Loading...</p>
 
 <a href="dashboard.html">⬅ Back</a>
 
@@ -15,10 +15,29 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
-<script>
+<!-- Firebase + AI -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// 🔥 config مالج
+const firebaseConfig = {
+  apiKey: "AIzaSyC1v-zF7WVcTHelodhNQZdKCQ6Pa4ov8Mk",
+  authDomain: "ai-project-67d70.firebaseapp.com",
+  projectId: "ai-project-67d70",
+  storageBucket: "ai-project-67d70.firebasestorage.app",
+  messagingSenderId: "46948162281",
+  appId: "1:46948162281:web:5d9f1a8e5d560dcdcc2e78"
+};
+
+// تشغيل Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// تحميل AI
 let model;
 
-// تحميل المودل
 async function loadModel(){
   document.getElementById("result").innerText = "⏳ Loading AI model...";
   model = await mobilenet.load();
@@ -35,7 +54,7 @@ const result = document.getElementById("result");
 upload.addEventListener("change", async (e) => {
 
   if (!model) {
-    result.innerText = "⏳ Model still loading... try again";
+    result.innerText = "⏳ Model still loading...";
     return;
   }
 
@@ -45,13 +64,12 @@ upload.addEventListener("change", async (e) => {
   image.src = URL.createObjectURL(file);
   result.innerText = "🔍 Analyzing...";
 
-  // نخلي الصورة تتحمل قبل التحليل
   image.onload = async () => {
 
     const predictions = await model.classify(image);
     let top = predictions[0];
 
-    // decision logic
+    // 🔥 decision logic
     let decision = "Normal";
 
     if (top.className.includes("knife") || top.className.includes("gun")) {
@@ -60,24 +78,25 @@ upload.addEventListener("change", async (e) => {
       decision = "❓ Uncertain";
     }
 
+    // عرض النتيجة
     result.innerText =
       top.className + " | " +
       (top.probability * 100).toFixed(2) + "% | " +
       decision;
 
-    // تخزين
-    let record = `
-      <div>
-        <p>${top.className} - ${decision}</p>
-        <img src="${image.src}" width="100">
-      </div>
-    `;
+    // 🔥 تخزين بـ Firebase
+    await addDoc(collection(db, "images"), {
+      name: top.className,
+      decision: decision,
+      accuracy: (top.probability * 100).toFixed(2),
+      image: image.src,
+      user: localStorage.getItem("user")
+    });
 
-    let old = localStorage.getItem("history") || "";
-    localStorage.setItem("history", old + record);
   };
 
 });
+
 </script>
 
 </body>
