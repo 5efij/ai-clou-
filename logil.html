@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; background:#0f172a; color:white;">
+
+<h2>🔐 Login</h2>
+
+<input id="user" placeholder="Username"><br><br>
+<input id="pass" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<script>
+function login() {
+  let u = user.value;
+  let p = pass.value;
+
+  if(u && p){
+    localStorage.setItem("user", u);
+    window.location.href = "dashboard.html";
+  } else {
+    alert("Enter data");
+  }
+}
+</script>
+
+</body>
+</html>
