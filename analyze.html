@@ -13,7 +13,6 @@
 
 <a href="dashboard.html">⬅ Back</a>
 
-<!-- AI -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
@@ -25,16 +24,14 @@ const upload = document.getElementById("upload");
 const image = document.getElementById("image");
 const result = document.getElementById("result");
 
-// تشغيل AI بزر
 async function startAI(){
   result.innerText = "⏳ Loading AI...";
   model = await mobilenet.load();
   ready = true;
-  result.innerText = "✅ AI Ready - Upload Image";
+  result.innerText = "✅ AI Ready";
 }
 
-// رفع وتحليل
-upload.addEventListener("change", (e) => {
+upload.addEventListener("change", async (e) => {
 
   if (!ready) {
     result.innerText = "❌ Click Start AI first";
@@ -46,14 +43,15 @@ upload.addEventListener("change", (e) => {
 
   const reader = new FileReader();
 
-  reader.onload = function(event) {
+  reader.onload = async function(event) {
 
     image.src = event.target.result;
+    result.innerText = "🔍 Analyzing...";
 
-    image.onload = async () => {
+    // ⏳ ننتظر شوي حتى تنعرض الصورة
+    await new Promise(r => setTimeout(r, 500));
 
-      result.innerText = "🔍 Analyzing...";
-
+    try {
       const predictions = await model.classify(image);
       let top = predictions[0];
 
@@ -70,18 +68,10 @@ upload.addEventListener("change", (e) => {
         (top.probability * 100).toFixed(2) + "% | " +
         decision;
 
-      // history
-      let record = `
-        <div>
-          <p>${top.className} - ${decision}</p>
-          <img src="${image.src}" width="100">
-        </div>
-      `;
-
-      let old = localStorage.getItem("history") || "";
-      localStorage.setItem("history", old + record);
-
-    };
+    } catch (err) {
+      result.innerText = "❌ Error in analysis";
+      console.error(err);
+    }
 
   };
 
