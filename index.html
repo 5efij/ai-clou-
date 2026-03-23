@@ -1,27 +1,51 @@
 <!DOCTYPE html>
 <html>
-<body style="text-align:center">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h2>Login</h2>
-
-<input id="user" placeholder="Username"><br><br>
-<input id="pass" type="password" placeholder="Password"><br><br>
-
-<button onclick="login()">Login</button>
-
-<script>
-function login(){
-  let u = user.value;
-  let p = pass.value;
-
-  if(u && p){
-    localStorage.setItem("user", u);
-    window.location.href = "dashboard.html";
-  } else {
-    alert("Enter data");
-  }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: white;
 }
-</script>
+
+.container {
+  text-align: center;
+}
+
+a {
+  display: block;
+  margin: 10px;
+  padding: 15px;
+  background: #38bdf8;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  width: 200px;
+}
+
+a:hover {
+  background: #0ea5e9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🤖 AI System</h2>
+
+<a href="analyze.html">📸 Analyze Image</a>
+<a href="history.html">📂 History</a>
+
+</div>
 
 </body>
 </html>
