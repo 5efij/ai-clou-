@@ -7,7 +7,7 @@
 <input type="file" id="upload"><br><br>
 <img id="image" width="250"><br><br>
 
-<p id="result">Result will appear here...</p>
+<p id="result">Waiting...</p>
 
 <a href="dashboard.html">⬅ Back</a>
 
@@ -18,51 +18,64 @@
 <script>
 let model;
 
+// تحميل المودل
 async function loadModel(){
+  document.getElementById("result").innerText = "⏳ Loading AI model...";
   model = await mobilenet.load();
+  document.getElementById("result").innerText = "✅ Model Ready - Upload Image";
 }
+
 loadModel();
 
 const upload = document.getElementById("upload");
 const image = document.getElementById("image");
 const result = document.getElementById("result");
 
+// تحليل الصورة
 upload.addEventListener("change", async (e) => {
+
+  if (!model) {
+    result.innerText = "⏳ Model still loading... try again";
+    return;
+  }
 
   const file = e.target.files[0];
   if (!file) return;
 
   image.src = URL.createObjectURL(file);
-  result.innerText = "Analyzing...";
+  result.innerText = "🔍 Analyzing...";
 
-  const predictions = await model.classify(image);
-  let top = predictions[0];
+  // نخلي الصورة تتحمل قبل التحليل
+  image.onload = async () => {
 
-  // 🔥 decision logic
-  let decision = "Normal";
+    const predictions = await model.classify(image);
+    let top = predictions[0];
 
-  if (top.className.includes("knife") || top.className.includes("gun")) {
-    decision = "🚨 Dangerous";
-  } else if (top.probability < 0.6) {
-    decision = "❓ Uncertain";
-  }
+    // decision logic
+    let decision = "Normal";
 
-  // عرض النتيجة
-  result.innerText =
-    top.className + " | " +
-    (top.probability * 100).toFixed(2) + "% | " +
-    decision;
+    if (top.className.includes("knife") || top.className.includes("gun")) {
+      decision = "🚨 Dangerous";
+    } else if (top.probability < 0.6) {
+      decision = "❓ Uncertain";
+    }
 
-  // تخزين بالهيستوري
-  let record = `
-    <div>
-      <p>${top.className} - ${decision}</p>
-      <img src="${image.src}" width="100">
-    </div>
-  `;
+    result.innerText =
+      top.className + " | " +
+      (top.probability * 100).toFixed(2) + "% | " +
+      decision;
 
-  let old = localStorage.getItem("history") || "";
-  localStorage.setItem("history", old + record);
+    // تخزين
+    let record = `
+      <div>
+        <p>${top.className} - ${decision}</p>
+        <img src="${image.src}" width="100">
+      </div>
+    `;
+
+    let old = localStorage.getItem("history") || "";
+    localStorage.setItem("history", old + record);
+  };
 
 });
 </script>
