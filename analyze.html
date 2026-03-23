@@ -7,7 +7,7 @@
 <input type="file" id="upload"><br><br>
 <img id="image" width="250"><br><br>
 
-<p id="result">⏳ Loading...</p>
+<p id="result">Ready</p>
 
 <a href="dashboard.html">⬅ Back</a>
 
@@ -15,31 +15,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyC1v-zF7WVcTHelodhNQZdKCQ6Pa4ov8Mk",
-  authDomain: "ai-project-67d70.firebaseapp.com",
-  projectId: "ai-project-67d70",
-  storageBucket: "ai-project-67d70.firebasestorage.app",
-  messagingSenderId: "46948162281",
-  appId: "1:46948162281:web:5d9f1a8e5d560dcdcc2e78"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// تحميل المودل
+<script>
 let model;
 
 async function loadModel(){
-  result.innerText = "⏳ Loading AI model...";
+  result.innerText = "⏳ Loading AI...";
   model = await mobilenet.load();
-  result.innerText = "✅ Model Ready - Upload Image";
+  result.innerText = "✅ Ready";
 }
 
 loadModel();
@@ -48,18 +30,17 @@ const upload = document.getElementById("upload");
 const image = document.getElementById("image");
 const result = document.getElementById("result");
 
-// تحليل الصورة
-upload.addEventListener("change", async (e) => {
+upload.addEventListener("change", (e) => {
 
   if (!model) {
-    result.innerText = "⏳ Model still loading...";
+    result.innerText = "⏳ Wait...";
     return;
   }
 
   const file = e.target.files[0];
   if (!file) return;
 
-  // 🔥 الحل النهائي لعرض الصورة
+  // عرض الصورة (مضمون)
   const reader = new FileReader();
 
   reader.onload = function(event) {
@@ -73,29 +54,29 @@ upload.addEventListener("change", async (e) => {
       const predictions = await model.classify(image);
       let top = predictions[0];
 
-      // decision
       let decision = "Normal";
 
       if (top.className.includes("knife") || top.className.includes("gun")) {
-        decision = "🚨 Dangerous";
+        decision = "Dangerous";
       } else if (top.probability < 0.6) {
-        decision = "❓ Uncertain";
+        decision = "Uncertain";
       }
 
-      // عرض النتيجة
       result.innerText =
         top.className + " | " +
         (top.probability * 100).toFixed(2) + "% | " +
         decision;
 
-      // تخزين Firebase
-      await addDoc(collection(db, "images"), {
-        name: top.className,
-        decision: decision,
-        accuracy: (top.probability * 100).toFixed(2),
-        image: image.src,
-        user: localStorage.getItem("user")
-      });
+      // تخزين بسيط
+      let record = `
+        <div>
+          <p>${top.className} - ${decision}</p>
+          <img src="${image.src}" width="100">
+        </div>
+      `;
+
+      let old = localStorage.getItem("history") || "";
+      localStorage.setItem("history", old + record);
 
     };
 
@@ -104,7 +85,6 @@ upload.addEventListener("change", async (e) => {
   reader.readAsDataURL(file);
 
 });
-
 </script>
 
 </body>
