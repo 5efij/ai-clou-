@@ -1,18 +1,98 @@
 <!DOCTYPE html>
 <html>
-<body style="text-align:center; background:#0f172a; color:white;">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h2>📸 Analyze Image</h2>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-<button onclick="startAI()">🚀 Start AI</button><br><br>
+.container {
+  width: 320px;
+  background: #1e293b;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  text-align: center;
+}
 
-<input type="file" id="upload"><br><br>
-<img id="image" width="250"><br><br>
+h2 {
+  margin-bottom: 20px;
+}
 
-<p id="result">Click Start AI first</p>
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #38bdf8;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: 0.3s;
+}
 
-<a href="dashboard.html">⬅ Back</a>
+button:hover {
+  background: #0ea5e9;
+}
 
+input {
+  margin: 10px 0;
+  color: white;
+}
+
+img {
+  margin-top: 15px;
+  width: 100%;
+  border-radius: 12px;
+  display: none;
+}
+
+#result {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0f172a;
+  font-size: 14px;
+}
+
+.back {
+  display: block;
+  margin-top: 15px;
+  color: #38bdf8;
+  text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🤖 AI Analyzer</h2>
+
+<button onclick="startAI()">🚀 Start AI</button>
+
+<input type="file" id="upload">
+
+<img id="image">
+
+<p id="result">Start AI first</p>
+
+<a href="dashboard.html" class="back">⬅ Back</a>
+
+</div>
+
+<!-- AI -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
 
@@ -28,13 +108,13 @@ async function startAI(){
   result.innerText = "⏳ Loading AI...";
   model = await mobilenet.load();
   ready = true;
-  result.innerText = "✅ AI Ready";
+  result.innerText = "✅ Ready";
 }
 
 upload.addEventListener("change", async (e) => {
 
   if (!ready) {
-    result.innerText = "❌ Click Start AI first";
+    result.innerText = "❌ Start AI first";
     return;
   }
 
@@ -45,33 +125,39 @@ upload.addEventListener("change", async (e) => {
 
   reader.onload = async function(event) {
 
+    image.style.display = "block";
     image.src = event.target.result;
+
     result.innerText = "🔍 Analyzing...";
 
-    // ⏳ ننتظر شوي حتى تنعرض الصورة
     await new Promise(r => setTimeout(r, 500));
 
-    try {
-      const predictions = await model.classify(image);
-      let top = predictions[0];
+    const predictions = await model.classify(image);
+    let top = predictions[0];
 
-      let decision = "Normal";
+    let decision = "Normal";
 
-      if (top.className.includes("knife") || top.className.includes("gun")) {
-        decision = "🚨 Dangerous";
-      } else if (top.probability < 0.6) {
-        decision = "❓ Uncertain";
-      }
-
-      result.innerText =
-        top.className + " | " +
-        (top.probability * 100).toFixed(2) + "% | " +
-        decision;
-
-    } catch (err) {
-      result.innerText = "❌ Error in analysis";
-      console.error(err);
+    if (top.className.includes("knife") || top.className.includes("gun")) {
+      decision = "🚨 Dangerous";
+    } else if (top.probability < 0.6) {
+      decision = "❓ Uncertain";
     }
+
+    result.innerText =
+      top.className + "\n" +
+      (top.probability * 100).toFixed(2) + "%\n" +
+      decision;
+
+    // history
+    let record = `
+      <div>
+        <p>${top.className} - ${decision}</p>
+        <img src="${image.src}" width="80">
+      </div>
+    `;
+
+    let old = localStorage.getItem("history") || "";
+    localStorage.setItem("history", old + record);
 
   };
 
