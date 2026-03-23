@@ -48,7 +48,7 @@ const upload = document.getElementById("upload");
 const image = document.getElementById("image");
 const result = document.getElementById("result");
 
-// رفع وتحليل
+// تحليل الصورة
 upload.addEventListener("change", async (e) => {
 
   if (!model) {
@@ -59,42 +59,49 @@ upload.addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  // 🔥 عرض الصورة أولاً
-  image.src = URL.createObjectURL(file);
+  // 🔥 الحل النهائي لعرض الصورة
+  const reader = new FileReader();
 
-  // 🔥 ننتظر الصورة تتحمل
-  image.onload = async () => {
+  reader.onload = function(event) {
 
-    result.innerText = "🔍 Analyzing...";
+    image.src = event.target.result;
 
-    const predictions = await model.classify(image);
-    let top = predictions[0];
+    image.onload = async () => {
 
-    // decision
-    let decision = "Normal";
+      result.innerText = "🔍 Analyzing...";
 
-    if (top.className.includes("knife") || top.className.includes("gun")) {
-      decision = "🚨 Dangerous";
-    } else if (top.probability < 0.6) {
-      decision = "❓ Uncertain";
-    }
+      const predictions = await model.classify(image);
+      let top = predictions[0];
 
-    // عرض
-    result.innerText =
-      top.className + " | " +
-      (top.probability * 100).toFixed(2) + "% | " +
-      decision;
+      // decision
+      let decision = "Normal";
 
-    // تخزين Firebase
-    await addDoc(collection(db, "images"), {
-      name: top.className,
-      decision: decision,
-      accuracy: (top.probability * 100).toFixed(2),
-      image: image.src,
-      user: localStorage.getItem("user")
-    });
+      if (top.className.includes("knife") || top.className.includes("gun")) {
+        decision = "🚨 Dangerous";
+      } else if (top.probability < 0.6) {
+        decision = "❓ Uncertain";
+      }
+
+      // عرض النتيجة
+      result.innerText =
+        top.className + " | " +
+        (top.probability * 100).toFixed(2) + "% | " +
+        decision;
+
+      // تخزين Firebase
+      await addDoc(collection(db, "images"), {
+        name: top.className,
+        decision: decision,
+        accuracy: (top.probability * 100).toFixed(2),
+        image: image.src,
+        user: localStorage.getItem("user")
+      });
+
+    };
 
   };
+
+  reader.readAsDataURL(file);
 
 });
 
