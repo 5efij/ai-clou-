@@ -1,25 +1,71 @@
-// decision logic
-let decision = "Normal";
+<!DOCTYPE html>
+<html>
+<body style="text-align:center; background:#0f172a; color:white;">
 
-if (top.className.includes("knife") || top.className.includes("gun")) {
-  decision = "Dangerous";
-} else if (top.probability < 0.6) {
-  decision = "Uncertain";
+<h2>📸 Analyze Image</h2>
+
+<input type="file" id="upload"><br><br>
+<img id="image" width="250"><br><br>
+
+<p id="result">Result will appear here...</p>
+
+<a href="dashboard.html">⬅ Back</a>
+
+<!-- AI -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+<script>
+let model;
+
+async function loadModel(){
+  model = await mobilenet.load();
 }
+loadModel();
 
-// عرض النتيجة
-result.innerText =
-top.className + " | " +
-(top.probability * 100).toFixed(2) + "% | " +
-decision;
+const upload = document.getElementById("upload");
+const image = document.getElementById("image");
+const result = document.getElementById("result");
 
-// تخزين بالهيستوري
-let record = `
-<div>
-  <p>${top.className} - ${decision}</p>
-  <img src="${image.src}" width="100">
-</div>
-`;
+upload.addEventListener("change", async (e) => {
 
-let old = localStorage.getItem("history") || "";
-localStorage.setItem("history", old + record);
+  const file = e.target.files[0];
+  if (!file) return;
+
+  image.src = URL.createObjectURL(file);
+  result.innerText = "Analyzing...";
+
+  const predictions = await model.classify(image);
+  let top = predictions[0];
+
+  // 🔥 decision logic
+  let decision = "Normal";
+
+  if (top.className.includes("knife") || top.className.includes("gun")) {
+    decision = "🚨 Dangerous";
+  } else if (top.probability < 0.6) {
+    decision = "❓ Uncertain";
+  }
+
+  // عرض النتيجة
+  result.innerText =
+    top.className + " | " +
+    (top.probability * 100).toFixed(2) + "% | " +
+    decision;
+
+  // تخزين بالهيستوري
+  let record = `
+    <div>
+      <p>${top.className} - ${decision}</p>
+      <img src="${image.src}" width="100">
+    </div>
+  `;
+
+  let old = localStorage.getItem("history") || "";
+  localStorage.setItem("history", old + record);
+
+});
+</script>
+
+</body>
+</html>
