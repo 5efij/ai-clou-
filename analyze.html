@@ -1,43 +1,25 @@
-<!DOCTYPE html>
-<html>
-<body style="text-align:center; background:#0f172a; color:white;">
+// decision logic
+let decision = "Normal";
 
-<h2>📸 Analyze Image</h2>
+if (top.className.includes("knife") || top.className.includes("gun")) {
+  decision = "Dangerous";
+} else if (top.probability < 0.6) {
+  decision = "Uncertain";
+}
 
-<input type="file" id="upload"><br><br>
-<img id="image" width="250"><br>
-<p id="result"></p>
+// عرض النتيجة
+result.innerText =
+top.className + " | " +
+(top.probability * 100).toFixed(2) + "% | " +
+decision;
 
-<a href="dashboard.html">⬅ Back</a>
+// تخزين بالهيستوري
+let record = `
+<div>
+  <p>${top.className} - ${decision}</p>
+  <img src="${image.src}" width="100">
+</div>
+`;
 
-<script>
-const upload = document.getElementById("upload");
-const image = document.getElementById("image");
-const result = document.getElementById("result");
-
-upload.addEventListener("change", (e) => {
-
-  const file = e.target.files[0];
-  if (!file) return;
-
-  image.src = URL.createObjectURL(file);
-
-  // 🔥 تحليل وهمي (بس حتى النظام يشتغل)
-  let fakeResult = "Object: Image Uploaded\nStatus: Processed ✅";
-
-  result.innerText = fakeResult;
-
-  let record = `
-    <div>
-      <p>${fakeResult}</p>
-      <img src="${image.src}" width="100">
-    </div>
-  `;
-
-  let old = localStorage.getItem("history") || "";
-  localStorage.setItem("history", old + record);
-});
-</script>
-
-</body>
-</html>
+let old = localStorage.getItem("history") || "";
+localStorage.setItem("history", old + record);
