@@ -1,24 +1,17 @@
 <!DOCTYPE html>
 <html>
-<body style="text-align:center; background:#111; color:white;">
+<body style="text-align:center">
 
-<h2>📊 Dashboard</h2>
+<h2>Dashboard</h2>
 
 <p id="user"></p>
-<p id="stats"></p>
 
-<a href="analyze.html">📸 Analyze</a><br><br>
-<a href="history.html">📂 History</a>
+<a href="analyze.html">Analyze Image</a><br><br>
+<a href="history.html">History</a>
 
 <script>
 let userData = localStorage.getItem("user");
 document.getElementById("user").innerText = "User: " + userData;
-
-let data = localStorage.getItem("history") || "";
-let count = (data.match(/<div>/g) || []).length;
-
-document.getElementById("stats").innerText =
-"Total Images: " + count;
 </script>
 
 </body>
